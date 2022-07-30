@@ -1,0 +1,16 @@
+---
+- name: add user
+  hosts: webserver
+  gather_facts: false
+  become: true
+  tasks:
+    - name: add user
+      user: 
+        name: ansible
+        uid: 2500
+        groups: ["wheel"]
+    - name: copy ansible@ansible ssh key to new user in webserver
+      authorized_key:
+        user: ansible
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
