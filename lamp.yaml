@@ -1,0 +1,62 @@
+---
+## Install LampStack (Apache-PHP-Wordpress) on Centos8
+## Play1: Setup Apache
+- name: install apache in Centos8
+  hosts: webserver
+  become: true
+  vars_files:
+    - vars_lamp.yaml
+  tasks:
+    - name: Modify Selinux
+      lineinfile:
+        dest: /etc/selinux/config
+        regexp: '^SELINUX='
+        line: 'SELINUX=disabled'
+    - rpm_key:
+        state: present
+        key: https://rpms.remirepo.net/RPM-GPG-KEY-remi2018
+    - rpm_key:
+        state: present
+        key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-8
+    - name: install remi repository
+      dnf: 
+        name: 
+          - https://rpms.remirepo.net/enterprise/remi-release-8.rpm
+          - epel-release
+        state: latest
+    - name: enable repo
+      command: dnf --enablerepo=remi
+    - name: install dependants
+      dnf: 
+        name: "{{ packages }}"
+        state: latest
+    - name: install and enable Apache
+      dnf: 
+        name: 
+          - httpd
+          - wget
+        state: latest
+    - name: enable Apache
+      systemd: name=httpd enabled=yes state=restarted
+
+## Play2: Install&Unarchive Wordpress
+- name: Download and unarchive Wordpress
+  hosts: webserver
+  tasks:
+    - name: 
+      get_url:
+        url: http://wordpress.org/latest.tar.gz
+        dest: /tmp/latest.tar.gz
+    - name: unarchive
+      unarchive:
+        src: /tmp/latest.tar.gz
+        dest: /tmp
+        remote_src: yes
+    - name: copy the files and change the ownership  
+      copy:
+        src: /tmp/wordpress/
+        dest: /var/www/html
+        mode: '1777'
+        remote_src: true
+        owner: apache
+        group: apache
