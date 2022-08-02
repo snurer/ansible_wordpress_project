@@ -42,6 +42,7 @@
 ## Play2: Install&Unarchive Wordpress
 - name: Download and unarchive Wordpress
   hosts: webserver
+  become: true
   tasks:
     - name: 
       get_url:
@@ -52,11 +53,11 @@
         src: /tmp/latest.tar.gz
         dest: /tmp
         remote_src: yes
-    - name: copy the files and change the ownership  
+    - name: copy the files and change the ownership
       copy:
         src: /tmp/wordpress/
         dest: /var/www/html
-        mode: '1777'
+        mode: 777
         remote_src: true
         owner: apache
         group: apache
