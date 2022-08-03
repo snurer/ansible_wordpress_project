@@ -1,62 +1,59 @@
 ---
-## Install LampStack (Apache-PHP-Wordpress) on Centos8
-## Play1: Setup Apache
-- name: install apache in Centos8
+- name: Setup LAMP and Install Wordpress
   hosts: webserver
-  become: true
+  gather_facts: "{{ facts }}"
   vars_files:
-    - vars_lamp.yaml
+    - vars/vars_lamp.yaml
+  become: yes # sudo
   tasks:
-    - name: Modify Selinux
-      lineinfile:
-        dest: /etc/selinux/config
-        regexp: '^SELINUX='
-        line: 'SELINUX=disabled'
-    - rpm_key:
-        state: present
-        key: https://rpms.remirepo.net/RPM-GPG-KEY-remi2018
-    - rpm_key:
-        state: present
-        key: https://dl.fedoraproject.org/pub/epel/RPM-GPG-KEY-EPEL-8
-    - name: install remi repository
-      dnf: 
-        name: 
-          - https://rpms.remirepo.net/enterprise/remi-release-8.rpm
-          - epel-release
-        state: latest
-    - name: enable repo
-      command: dnf --enablerepo=remi
-    - name: install dependants
-      dnf: 
-        name: "{{ packages }}"
-        state: latest
-    - name: install and enable Apache
-      dnf: 
-        name: 
-          - httpd
-          - wget
-        state: latest
-    - name: enable Apache
-      systemd: name=httpd enabled=yes state=restarted
+    - block: 
+        - name: Install Apache
+          when: ansible_facts['pkg_mgr'] == "dnf"
+          dnf:
+            name: "{{ apache_package_name }}"
+            state: latest
+        
+        - name: Start & Enable Apache
+          when: ansible_facts['service_mgr'] == "systemd"
+          systemd:
+            name: "{{ apache_service_name }}"
+            state: started
+            enabled: yes
 
-## Play2: Install&Unarchive Wordpress
-- name: Download and unarchive Wordpress
-  hosts: webserver
-  become: true
-  tasks:
-    - name: 
-      get_url:
-        url: http://wordpress.org/latest.tar.gz
-        dest: /tmp/latest.tar.gz
-    - name: unarchive
-      unarchive:
-        src: /tmp/latest.tar.gz
-        dest: /tmp
-        remote_src: yes
-    - name: copy the files and change the ownership
-      copy:
-        src: /tmp/wordpress/
-        dest: /var/www/html
-        remote_src: true
-        owner: apache
-        group: apache
+        - name: Install PHP and Dependencies
+          when: ansible_facts['pkg_mgr'] == "dnf"
+          dnf:
+            name: "{{ php_packages }}"
+            state: latest
+        
+        - name: Install WordPress
+          unarchive:
+            src: https://wordpress.org/latest.tar.gz
+            dest: /tmp/
+            remote_src: yes
+        
+        - name: Copy Wordpress files to /var/www/html/
+          copy:
+            src: /tmp/wordpress/
+            dest: /var/www/html/
+            remote_src: yes
+
+        - name: Change ownership of /var/www/html
+          file:
+            path: /var/www/html
+            state: directory
+            recurse: yes
+            owner: apache
+            group: apache
+          notify: Restart Apache
+  
+      when:
+        - ansible_facts['distribution'] == "CentOS"
+        - ansible_facts['distribution_major_version'] == "8"
+  
+  handlers:
+    - name: Restart Apache
+      when: ansible_facts['service_mgr'] == "systemd"
+      systemd:
+        name: "{{ apache_service_name }}"
+        state: restarted

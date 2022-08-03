@@ -1,6 +1,6 @@
 ---
 - name: add user
-  hosts: webserver
+  hosts: database
   gather_facts: false
   become: true
   vars_files:
@@ -10,8 +10,8 @@
       user: 
         name: ansible
         uid: 2500
-        groups: ["wheel"]
-        passwd: "{{ ansible_passwd }}"
+        groups: ["sudo"]
+        password: "{{ ansible_passwd }}"
     - name: copy ansible@ansible ssh key to new user in webserver
       authorized_key:
         user: ansible
