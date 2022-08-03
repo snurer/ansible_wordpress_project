@@ -1,12 +1,13 @@
 ---
 - name: Setup LAMP and Install Wordpress
-  hosts: webserver
+  hosts: all
   gather_facts: "{{ facts }}"
   vars_files:
     - vars/vars_lamp.yaml
   become: yes # sudo
   tasks:
-    - block: 
+    - name: Setup Apache and Wordpress on Centos8
+      block: 
         - name: Install Apache
           when: ansible_facts['pkg_mgr'] == "dnf"
           dnf:
@@ -50,6 +51,19 @@
       when:
         - ansible_facts['distribution'] == "CentOS"
         - ansible_facts['distribution_major_version'] == "8"
+
+    - name: Setup MariaDB on Database
+      block:
+        - name: Install MariaDB on Database Server
+          when: ansible_facts['distribution'] == "Ubuntu"
+          apt:
+            update_cache: yes
+            name: "{{ mariadb_package_name }}"
+            state: present
+
+      when:
+        - ansible_facts['distribution'] == "Ubuntu"
+        - ansible_facts['distribution_version'] == "20.04"  
   
   handlers:
     - name: Restart Apache
@@ -57,3 +71,4 @@
       systemd:
         name: "{{ apache_service_name }}"
         state: restarted
+

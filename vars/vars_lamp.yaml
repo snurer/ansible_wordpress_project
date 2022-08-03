@@ -26,3 +26,6 @@ php_packages:
   - php-sockets
   - php-tokenizer
 
+#MariaDB package name
+mariadb_package_name: mariadb-server
+
