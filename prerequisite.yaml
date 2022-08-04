@@ -1,0 +1,19 @@
+---
+- name: add user
+  hosts: database
+  gather_facts: false
+  become: true
+  vars_files:
+    - passwd.yaml
+  tasks:
+    - name: add user
+      user: 
+        name: ansible
+        uid: 2500
+        groups: ["sudo"]
+        password: "{{ ansible_passwd }}"
+    - name: copy ansible@ansible ssh key to new user in webserver
+      authorized_key:
+        user: ansible
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"

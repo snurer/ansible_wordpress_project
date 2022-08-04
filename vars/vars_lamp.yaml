@@ -1,0 +1,31 @@
+#Facts
+facts: yes
+
+#Apache package name
+apache_package_name: httpd
+
+#Service name
+apache_service_name: httpd
+
+# PHP Packages
+php_packages: 
+  - php
+  - php-mysqlnd
+  - php-dom 
+  - php-simplexml
+  - php-xml
+  - php-xmlreader
+  - php-curl
+  - php-exif
+  - php-ftp
+  - php-gd
+  - php-iconv
+  - php-json
+  - php-mbstring
+  - php-posix
+  - php-sockets
+  - php-tokenizer
+
+#MariaDB package name
+mariadb_package_name: mariadb-server
+

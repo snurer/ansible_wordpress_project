@@ -1,0 +1,1 @@
+packages: ["dnf-utils", "php", "php-common", "php-mysqlnd", "php-cli", "php-curl", "php-gd", "php-mbstring", "php-xml"]
