@@ -1,0 +1,31 @@
+---
+- name:
+  hosts: database
+  become: yes
+  vars_files:
+    - vars/vars_lamp.yaml
+  tasks:
+    - name: Install Mysql DB and requirements
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - build-essential
+          - libmysqlclient-dev
+          - python-dev
+        state: latest  
+    - name: Start and enable Mariadb
+      systemd: name=mariadb.service enabled=yes state=started
+    
+    - name: create a new database
+      mysql_db: name=wpdb state=present
+    
+    - name: create a database user
+      mysql_user:
+        name: wpuser 
+        password: "{{ mysql_passwd }}"
+        priv: '*.*:ALL'
+        state: present
+    
+    - name:
+      ping:

@@ -1,12 +1,17 @@
 ---
-- name: update all the packages in linux servers
-  hosts: webserver
+- name: Update Packages
+  hosts: all
+  gather_facts: yes
   become: yes
   tasks:
-    - name: update packages
+    - name: Update Packages - webserver
       when: ansible_facts['pkg_mgr'] == "dnf"
       dnf:
         name: "*"
         state: latest
-        
-      
+    
+    - name: Update Packages - database
+      when: ansible_facts['pkg_mgr'] == "apt"
+      apt:
+        name: "*"
+        state: latest
