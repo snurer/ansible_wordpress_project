@@ -28,4 +28,9 @@ php_packages:
 
 #MariaDB package name
 mariadb_package_name: mariadb-server
+mariadb_service_name: mariadb
+
+#MYSQL
+
+mysql_passwd: redhat123
 

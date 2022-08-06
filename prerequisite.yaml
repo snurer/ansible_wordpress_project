@@ -1,19 +1,32 @@
 ---
-- name: add user
-  hosts: database
-  gather_facts: false
-  become: true
-  vars_files:
-    - passwd.yaml
+- name: Prerequisites
+  hosts: all
+  gather_facts: yes
   tasks:
-    - name: add user
-      user: 
+    - name: Add user ansible - webserver
+      when: ansible_facts['distribution'] == "CentOS" 
+      user:
+        name: ansible
+        uid: 2500
+        groups: ["wheel"]
+
+    - name: Add public key 
+      authorized_key: 
+        user: ansible
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+
+    - name: Add user ansible - database
+      when: ansible_facts['distribution'] == "Ubuntu" 
+      user:
         name: ansible
         uid: 2500
         groups: ["sudo"]
-        password: "{{ ansible_passwd }}"
-    - name: copy ansible@ansible ssh key to new user in webserver
-      authorized_key:
+        shell: /bin/bash
+
+    - name: Add public key 
+      authorized_key: 
         user: ansible
         state: present
         key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
